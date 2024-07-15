@@ -1,0 +1,181 @@
+<meta name="description" content="Web-based Markdown to HTML Converter">
+<meta name="keywords" content="markdown, html, converter, web app">
+<html><head><base href="https://websim.ai" /><title>Web-Based Markdown to HTML Converter</title><script src="https://unpkg.com/react@17/umd/react.development.js"></script><script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script><script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script><style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f0f4f8;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+    }
+    textarea, .preview {
+      width: 100%;
+      height: 300px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .preview {
+      background-color: #f9f9f9;
+      overflow-y: auto;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .flex-container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .flex-item {
+      flex: 1;
+      margin: 0 10px;
+    }
+    .guide {
+      background-color: #ecf0f1;
+      border-left: 5px solid #3498db;
+      padding: 10px;
+      margin-top: 20px;
+    }
+    .icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+  </style></head><body><div id="root"></div><script type="text/babel">
+  const { useState } = React;
+  
+  const Icon = ({ name }) => {
+    const icons = {
+      send: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      ),
+      copy: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      ),
+      download: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      )
+    };
+  
+    return <span className="icon">{icons[name]}</span>;
+  };
+  
+  const MarkdownConverter = () => {
+    const [markdown, setMarkdown] = useState('');
+    const [html, setHtml] = useState('');
+    const [copied, setCopied] = useState(false);
+  
+    const convertToHtml = () => {
+      // Simple markdown to HTML conversion
+      let converted = markdown
+        .replace(/#{6}\s?([^\n]+)/g, '<h6>$1</h6>')
+        .replace(/#{5}\s?([^\n]+)/g, '<h5>$1</h5>')
+        .replace(/#{4}\s?([^\n]+)/g, '<h4>$1</h4>')
+        .replace(/#{3}\s?([^\n]+)/g, '<h3>$1</h3>')
+        .replace(/#{2}\s?([^\n]+)/g, '<h2>$1</h2>')
+        .replace(/#{1}\s?([^\n]+)/g, '<h1>$1</h1>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        .replace(/!\[([^\]]+)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+        .replace(/^- (.+)/gm, '<ul><li>$1</li></ul>')
+        .replace(/^(\d+\. .+)/gm, '<ol><li>$1</li></ol>')
+        .replace(/```(\w+)?\n([\s\S]*?)\n```/g, '<pre><code class="language-$1">$2</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\n\n/g, '<br><br>');
+  
+      setHtml(converted);
+    };
+  
+    const copyToClipboard = () => {
+      navigator.clipboard.writeText(html);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+  
+    const downloadHtml = () => {
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'converted.html';
+      a.click();
+    };
+  
+    return (
+      <div className="container">
+        <h1>Web-Based Markdown to HTML Converter</h1>
+        <div className="flex-container">
+          <div className="flex-item">
+            <h2>Markdown Input</h2>
+            <textarea
+              value={markdown}
+              onChange={(e) => setMarkdown(e.target.value)}
+              placeholder="Enter your markdown here..."
+            />
+            <button onClick={convertToHtml}><Icon name="send" /> Convert to HTML</button>
+          </div>
+          <div className="flex-item">
+            <h2>HTML Output</h2>
+            <div className="preview" dangerouslySetInnerHTML={{ __html: html }} />
+            <button onClick={copyToClipboard}>
+              <Icon name="copy" /> {copied ? 'Copied!' : 'Copy HTML'}
+            </button>
+            <button onClick={downloadHtml}><Icon name="download" /> Download HTML</button>
+          </div>
+        </div>
+        <div className="guide">
+          <h3>Quick Markdown Guide</h3>
+          <ul>
+            <li><strong>Headers:</strong> # H1, ## H2, ### H3</li>
+            <li><strong>Bold:</strong> **bold text**</li>
+            <li><strong>Italic:</strong> *italicized text*</li>
+            <li><strong>Link:</strong> [title](https://www.example.com)</li>
+            <li><strong>Image:</strong> ![alt text](image.jpg)</li>
+            <li><strong>Unordered List:</strong> - Item 1</li>
+            <li><strong>Ordered List:</strong> 1. First item</li>
+            <li><strong>Code:</strong> `code`</li>
+            <li><strong>Horizontal Rule:</strong> ---</li>
+            <li><strong>Blockquote:</strong> > blockquote</li>
+          </ul>
+        </div>
+      </div>
+    );
+  };
+  
+  ReactDOM.render(<MarkdownConverter />, document.getElementById('root'));
+  </script></body></html>
